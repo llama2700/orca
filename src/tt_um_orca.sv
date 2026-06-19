@@ -1,3 +1,8 @@
+/*
+* Copyright (c) 2026 Abhi Alavilli
+* SPDX-License-Identifier: Apache-2.0
+*/
+
 `default_nettype none
 
 module tt_um_orca (
