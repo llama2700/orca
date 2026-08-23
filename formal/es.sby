@@ -1,0 +1,23 @@
+# SymbiYosys: P1-P3 (monotone best_fitness, revert restores genome, no
+# deadlock). Run: sby -f es.sby
+[options]
+mode prove
+depth 25
+
+[engines]
+smtbmc
+
+[script]
+read -formal -sv ../behav/orca_pkg.sv
+read -formal -sv ../behav/prng.sv
+read -formal -sv ../behav/genome_store.sv
+read -formal -sv ../behav/es_controller.sv
+read -formal -sv formal_top.sv
+prep -top formal_top
+
+[files]
+formal_top.sv
+../behav/orca_pkg.sv
+../behav/prng.sv
+../behav/genome_store.sv
+../behav/es_controller.sv

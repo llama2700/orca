@@ -1,0 +1,19 @@
+# P4: genome CSR writes are ignored unless csr_allowed (IDLE).
+# Run: sby -f p4_csr_lock.sby
+[options]
+mode prove
+depth 15
+
+[engines]
+smtbmc
+
+[script]
+read -formal -sv ../behav/orca_pkg.sv
+read -formal -sv ../behav/genome_store.sv
+read -formal -sv p4_props.sv
+prep -top p4_top
+
+[files]
+p4_props.sv
+../behav/orca_pkg.sv
+../behav/genome_store.sv
