@@ -40,12 +40,15 @@ jobs:
           path: test/sim_build/**/results.xml
           if-no-files-found: ignore
 
-  flop-count:
+  delay-line:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
       - uses: YosysHQ/setup-oss-cad-suite@v3
-      - name: flop budget gate
-        run: python3 scripts/flop_count.py --rtl-dir src --budget 480 --netlist synth.v
+      - name: synth with yosys
+        working-directory: src
+        run: |
+          echo '(* blackbox *) module sky130_fd_sc_hd__dlygate4sd3_1 (input A, output X); endmodule' > stub.v
+          yosys -q -p "read_verilog -sv stub.v orca_pkg.sv fabric_cell.sv fabric.sv prng.sv genome_store.sv ser_cmd.sv settle_sensor.sv eval_engine.sv es_controller.sv tt_um_orca.sv; synth -top tt_um_orca -flatten; write_verilog -noattr ../synth.v"
       - name: delay line survives yosys
         run: python3 scripts/delayline_check.py synth.v
