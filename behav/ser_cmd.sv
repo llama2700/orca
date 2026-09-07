@@ -1,9 +1,10 @@
 `default_nettype none
 
-// bit-banged csr interface from the rp2040
-// frame: 24 bits msb-first {rw(1), addr(7), data(16)}, rw=1 write
-//   ser_shift rising edge: shift ser_data into cmd, shift one response bit out
-//   ser_exec rising edge:  write -> csr_we pulse; read -> load resp from csr
+// Frame: 24 bits MSB-first {rw(1), addr(7), data(16)}. rw=1 write, rw=0 read.
+// - ser_shift rising edge: shifts ser_data into the command register and
+//   shifts one response bit out (ser_out shows the MSB *before* the pulse).
+// - ser_exec rising edge: rw=1 -> csr_we pulse; rw=0 -> loads response
+//   register from csr_rdata (csr_addr holds the exec'd address afterwards).
 module ser_cmd (
   input  logic clk, rst_n,
   input  logic ser_data,
@@ -42,10 +43,12 @@ module ser_cmd (
   logic [6:0]  addr_q;
   logic        we_q;
 
-  // on the exec cycle of a read, bypass addr_q so csr_rdata already reflects
-  // the frame's address when resp loads
-  logic [6:0] csr_addr_eff;
-  assign csr_addr_eff = exec_edge ? cmd[22:16] : addr_q;
+  // For reads, csr_addr must present the new address on the exec cycle so
+  // csr_rdata is the addressed register. Bypass the address register then.
+  logic [6:0]  csr_addr_eff;
+  logic [15:0] csr_rdata_at_exec;
+  assign csr_addr_eff      = exec_edge ? cmd[22:16] : addr_q;
+  assign csr_rdata_at_exec = csr_rdata;
 
   always_ff @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -61,7 +64,7 @@ module ser_cmd (
       end else if (exec_edge) begin
         addr_q <= cmd[22:16];
         if (cmd[23]) we_q <= 1'b1;   // write: csr_we pulse next cycle
-        else         resp <= csr_rdata;
+        else         resp <= csr_rdata_at_exec;
       end
     end
   end

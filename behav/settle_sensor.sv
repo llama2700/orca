@@ -1,7 +1,7 @@
 `default_nettype none
 
-// razor-style settle-time sensor: capture is clean iff tap_sel >= behav_tmin.
-// behav_tmin resets to BEHAV_TMIN (0 = infinitely fast fabric => speed 63)
+// capture is clean iff tap_sel >= behav_tmin.
+// behav_tmin resets to BEHAV_TMIN (0 = "infinitely fast fabric" => speed 63)
 // and is pokeable hierarchically to fake a die speed.
 module settle_sensor #(
   parameter logic [5:0] BEHAV_TMIN = 6'd0
@@ -23,7 +23,7 @@ module settle_sensor #(
     if (!rst_n) behav_tmin <= BEHAV_TMIN;
   end
 
-  // shadow pi launch
+  // shadow PI launch
   assign pi_shadow = pi_main;
 
   // registered mismatch flag

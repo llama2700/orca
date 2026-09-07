@@ -18,9 +18,9 @@ module prng (
   assign x3 = x2 ^ (x2 << 5);
 
   always_ff @(posedge clk or negedge rst_n) begin
-    if (!rst_n)       state <= RESET_SEED;
-    else if (seed_we) state <= (seed_val == 32'h0) ? RESET_SEED : seed_val;
-    else if (next)    state <= x3;
+    if (!rst_n)        state <= RESET_SEED;
+    else if (seed_we)  state <= (seed_val == 32'h0) ? RESET_SEED : seed_val;
+    else if (next)     state <= x3;
   end
 
   assign prng_val = state;

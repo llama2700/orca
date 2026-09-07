@@ -1,26 +1,26 @@
 `default_nettype none
 
-// scores the current phenotype against the target truth table.
-// correctness sweep: for v = 0..15 drive pi = v, wait SETTLE_WAIT cycles,
-// count matching po bits (max 32). speed sweep (only if correct == 32 and
-// !speed_sweep_disable): binary-search the min settle tap t_min at which all
-// 16 vectors capture cleanly; speed = 63 - t_min, else speed = 0.
+// Correctness sweep: for v = 0..15 drive pi = v, wait SETTLE_WAIT cycles,
+// compare po against target, accumulate per-bit correct count (max 32).
+// Speed sweep (only if correct == 32 and !speed_sweep_disable): binary-search
+// the minimum settle-sensor tap t_min (64 taps) at which all 16 vectors capture
+// cleanly (settle_mismatch never asserts); speed = 63 - t_min. Otherwise speed = 0.
 // fitness = {correct[5:0], speed[5:0]} — lexicographic by construction.
 module eval_engine (
   input  logic clk, rst_n,
   input  logic eval_start,
   input  logic speed_sweep_disable,
-  // target, packed: target[v] = target_flat[2v +: 2] for v in 0..15
+  // Target truth table, packed: target[v] = target_flat[2v+1 -: 2] for v in 0..15
   input  logic [31:0] target_flat,
-  // settle sensor
+  // Settle sensor interface
   output logic [5:0] settle_tap,
   input  logic       settle_mismatch,
-  // fabric
+  // Fabric interface
   output logic [3:0] pi,
   input  logic [1:0] po,
-  // results
+  // Results
   output logic eval_done,
-  output logic [11:0] fitness
+  output logic [11:0] fitness // {correct[5:0], speed[5:0]}
 );
 
   localparam int SETTLE_WAIT = 4;
@@ -36,9 +36,8 @@ module eval_engine (
   logic [5:0] lo, hi;
   logic       fail;
 
-  // binary search step (7-bit sum: 6-bit + overflows)
   logic [5:0] mid, new_lo, new_hi;
-  assign mid    = ({1'b0, lo} + {1'b0, hi}) >> 1;
+  assign mid    = ({1'b0, lo} + {1'b0, hi}) >> 1;  // 7-bit sum: 6-bit + overflows
   assign new_lo = fail ? mid + 1 : lo;   // failed pass: t_min above mid
   assign new_hi = fail ? hi : mid;       // clean pass: t_min at or below mid
 
@@ -97,7 +96,7 @@ module eval_engine (
           end
         end
 
-        // ---- speed sweep ----
+        // ---- speed sweep: binary search min clean tap ----
         S_SETTLE: begin
           if (wait_cnt == 0) state <= S_CAPTURE;
           else               wait_cnt <= wait_cnt - 1;

@@ -1,12 +1,12 @@
 `default_nettype none
 
-// current genome + single-entry mutation log: revert re-flips the logged bit
-// (xor is its own inverse), so no shadow copy of the genome is needed.
-// csr window: word w = genome[12w +: 12] for w < 11, word 11 is padding.
-// reads anytime; writes only while csr_allowed (ES idle).
+// Genome CSR window packing: word w (w = 0..10) = genome[12w +: 12]; word 11
+// reads 0 and ignores writes (11 x 12 = 132 exactly).
+// Reads are allowed anytime (racy while evolving, but harmless); writes are
+// gated by csr_allowed.
 module genome_store (
   input  logic clk, rst_n,
-  // mutation port (from es_controller)
+  // mutation port (from es_controller/mutator)
   input  logic        mut_valid,
   input  logic [7:0]  mut_addr,    // flip genome[mut_addr]; caller guarantees < 132
   input  logic        log_clear,   // on ACCEPT
@@ -32,6 +32,7 @@ module genome_store (
         log_addr  <= mut_addr;
         log_valid <= 1'b1;
       end else if (log_replay) begin
+        // XOR is its own inverse: restores pre-mutation genome
         if (log_valid) genome[log_addr] <= ~genome[log_addr];
         log_valid <= 1'b0;
       end else if (log_clear) begin

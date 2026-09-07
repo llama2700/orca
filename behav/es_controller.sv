@@ -1,37 +1,37 @@
 `default_nettype none
 
-// (1+1) evolution strategy: flip one genome bit per generation, keep the
-// mutant iff fitness >= best, else revert (via the genome store's log).
-// optional annealing: accept a worse mutant when prng[15:0] < temperature.
-// the anneal draw reuses the prng state left by the final MUTATE draw
-// (no extra tick in DECIDE).
+// (1+1) ES:
+//   MUTATE  — tick PRNG once per cycle until prng_val[7:0] < 132; that value
+//             is the mutation address (single mut_valid pulse).
+//   DECIDE  — accept iff fitness >= best_fitness, or anneal draw passes using
+//             the PRNG state left from the final MUTATE draw (no extra tick).
 module es_controller (
   input  logic clk, rst_n,
   input  logic run,
   input  logic anneal_en,
   input  logic [15:0] temperature,
-  input  logic ctr_clear,           // CTRL.soft_reset_counters
-  input  logic pause_after_accept,  // CTRL bit2
+  input  logic ctr_clear,           // extra: CTRL.soft_reset_counters
+  input  logic pause_after_accept,  // extra: CTRL.pause_after_accept
   // PRNG
   output logic next_prng,
   input  logic [31:0] prng_val,
-  // genome store
+  // Genome store
   output logic mut_valid,
   output logic [7:0] mut_addr,
   output logic log_clear,
   output logic log_replay,
-  // eval engine
+  // Eval engine
   output logic eval_start,
   input  logic eval_done,
   input  logic [11:0] fitness,
-  // CSR/status
+  // CSR/Status
   output logic [23:0] generation,
   output logic [15:0] accepts,
   output logic [11:0] best_fitness,
   output logic [11:0] last_fitness,
   output logic solved,
   output logic [2:0] state,
-  output logic accept_pulse
+  output logic accept_pulse         // extra: 1-cycle pulse on accept
 );
 
   typedef enum logic [2:0] {
@@ -40,7 +40,7 @@ module es_controller (
   } state_e;
 
   state_e st;
-  logic drawn;         // at least one prng tick since entering MUTATE
+  logic drawn;         // at least one PRNG tick since entering MUTATE
   logic eval_started;
   logic accepted;      // this generation ended in an accept
   logic paused;        // pause_after_accept latch; cleared when run drops
@@ -77,8 +77,8 @@ module es_controller (
     end else begin
       if (!run) paused <= 1'b0;
       if (ctr_clear) begin
-        // clears fitness too, so HEAL can re-baseline after fault injection
-        // (a stale best_fitness would reject every imperfect candidate)
+        // clears fitness state too so HEAL can re-baseline after fault
+        // injection (stale best_fitness would otherwise block all accepts)
         generation   <= '0;
         accepts      <= '0;
         best_fitness <= '0;

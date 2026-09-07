@@ -1,47 +1,29 @@
-# Sample testbench for a Tiny Tapeout project
+# ORCA test suites
 
-This is a sample testbench for a Tiny Tapeout project. It uses [cocotb](https://docs.cocotb.org/en/stable/) to drive the DUT and check the outputs.
-See below to get started or for more information, check the [website](https://tinytapeout.com/hdl/testing/).
-
-## Setting up
-
-1. Edit [Makefile](Makefile) and modify `PROJECT_SOURCES` to point to your Verilog files.
-2. Edit [tb.v](tb.v) and replace `tt_um_example` with your module name.
-
-## How to run
-
-To run the RTL simulation:
+cocotb 2.0 + Icarus. The suites run against either RTL tree: the behavioral
+reference (`behav/`, default) or `src/`.
 
 ```sh
-make -B
+pip install -r requirements.txt   # or use the repo .venv
+
+make -B                           # full chip: test_reset, test_serial, test_evolution_e2e
+make -B UNIT=fabric               # 1000 random genomes vs model (fabric standalone)
+make -B UNIT=fault                # stuck-at injection vs model
+make -B UNIT=eval                 # eval engine + settle sensor harness (forced t_min sweep)
+make -B UNIT=es                   # ES controller lockstep vs the golden model
+make -B RTL=src [UNIT=...]        # same suites against src/
 ```
 
-To run gatelevel simulation, first harden your project and copy `../runs/wokwi/results/final/verilog/gl/{your_module_name}.v` to `gate_level_netlist.v`.
+The evolution end-to-end test seeds the PRNG over the serial BFM and checks the
+chip bit-exact against the Python golden model in `model/` (genome, fitness,
+accepts at the same generation). `test_heal_demo` injects a 1-cell fault and
+asserts recovery; `test_fault_demo_button` checks the ui[2] self-contained HEAL
+trigger (mask + re-baseline + TEMP arm).
 
-Then run:
+Gate level (run by the TT GDS action, which copies in the netlist):
 
 ```sh
 make -B GATES=yes
 ```
 
-If you wish to save the waveform in VCD format instead of FST format, edit tb.v to use `$dumpfile("tb.vcd");` and then run:
-
-```sh
-make -B FST=
-```
-
-This will generate `tb.vcd` instead of `tb.fst`.
-
-## How to view the waveform file
-
-Using GTKWave
-
-```sh
-gtkwave tb.fst tb.gtkw
-```
-
-Using Surfer
-
-```sh
-surfer tb.fst
-```
+Waves land in `tb.fst` (`gtkwave tb.fst tb.gtkw` or `surfer tb.fst`).

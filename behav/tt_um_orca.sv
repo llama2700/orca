@@ -4,7 +4,7 @@
 *
 * ORCA top level.
 * STATUS (0x02): [2:0] fsm_state, [3] solved, [4] err_busy (sticky)
-* CTRL   (0x01): [0] soft_run, [1] soft_reset_counters (pulse),
+* CTRL   (0x01): [0] soft_run, [1] soft_reset_counters (self-clearing pulse),
 *                [2] pause_after_accept, [3] W1C err_busy, [4] speed_sweep_disable
 */
 
@@ -160,7 +160,7 @@ module tt_um_orca (
     .accept_pulse(accept_pulse)
   );
 
-  // generation[8] flips every 256 generations — 1-flop decay detector
+  // generation[8] flips exactly every 256 generations — 1-flop decay detector
   logic prev_gen_b8;
   always_ff @(posedge clk or negedge rst_n) begin
     if (!rst_n) prev_gen_b8 <= 1'b0;
