@@ -5,15 +5,15 @@ mode prove
 depth 15
 
 [engines]
-smtbmc
+smtbmc z3
 
 [script]
-read -formal -sv ../behav/orca_pkg.sv
-read -formal -sv ../behav/genome_store.sv
+read -formal -sv orca_pkg.sv
+read -formal -sv genome_store.sv
 read -formal -sv p4_props.sv
 prep -top p4_top
 
 [files]
 p4_props.sv
-../behav/orca_pkg.sv
-../behav/genome_store.sv
+../src/orca_pkg.sv
+../src/genome_store.sv

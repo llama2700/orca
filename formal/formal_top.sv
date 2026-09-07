@@ -43,6 +43,13 @@ module formal_top (
     .solved(solved), .state(state), .accept_pulse());
 
 `ifdef FORMAL
+  reg f_past_valid = 1'b0;
+  always_ff @(posedge clk) f_past_valid <= 1'b1;
+  always_comb begin
+    if (!f_past_valid) assume (!rst_n);
+    else               assume (rst_n);
+  end
+
   // fairness: eval answers within 8 cycles (abstract eval engine)
   logic [3:0] eval_pending;
   always_ff @(posedge clk or negedge rst_n) begin
@@ -57,14 +64,21 @@ module formal_top (
   end
 
   // ---- P1: with annealing off, best_fitness is monotone non-decreasing ----
-  logic [10:0] best_prev;
-  logic        past_valid;
+  // anneal_en is quasi-static (pin/CSR): assume it doesn't toggle mid-run,
+  // otherwise a DECIDE-time annealed accept can legitimately lower
+  // best_fitness just as the guard re-arms. fitness is constrained to what
+  // the eval engine can produce (correct <= 32).
+  logic [11:0] best_prev;
+  logic        past_valid, anneal_q;
   always_ff @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin past_valid <= 0; best_prev <= 0; end
-    else begin past_valid <= 1; best_prev <= best_fitness; end
+    if (!rst_n) begin past_valid <= 0; best_prev <= 0; anneal_q <= 1'b1; end
+    else begin past_valid <= 1; best_prev <= best_fitness; anneal_q <= anneal_en; end
   end
-  always_comb if (past_valid && !anneal_en)
-    assert (best_fitness >= best_prev);
+  always_comb begin
+    assume (fitness[11:6] <= 6'd32);
+    if (past_valid) assume (anneal_en == anneal_q);
+    if (past_valid && !anneal_en) assert (best_fitness >= best_prev);
+  end
 
   // ---- P2: REVERT restores the exact pre-mutation genome ----
   logic [131:0] genome_shadow;

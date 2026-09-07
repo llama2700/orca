@@ -1,8 +1,9 @@
 `default_nettype none
 
 // Unit-test harness: eval_engine + fabric + settle_sensor.
-// cocotb drives genome/target directly and pokes u_sensor.behav_tmin to fake
-// a die speed.
+// cocotb drives genome/target directly and pokes u_sensor.forced_tmin to fake
+// a die speed. the fabric hangs off pi_shadow like in the top so the shadow
+// launch path is exercised too.
 module eval_harness (
   input  logic clk, rst_n,
   input  logic eval_start,
@@ -21,7 +22,7 @@ module eval_harness (
   logic        settle_mismatch, probe;
 
   fabric u_fabric (
-    .pi(pi), .genome(genome),
+    .pi(pi_shadow), .genome(genome),
     .stuck_en(stuck_en), .stuck_val(stuck_val),
     .po(po), .cell_out_dbg(cell_out_dbg)
   );
@@ -45,6 +46,6 @@ module eval_harness (
     .eval_done(eval_done), .fitness(fitness)
   );
 
-  wire _unused = &{pi_shadow, probe, cell_out_dbg, 1'b0};
+  wire _unused = &{probe, cell_out_dbg, 1'b0};
 
 endmodule

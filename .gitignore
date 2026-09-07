@@ -11,6 +11,9 @@ test/sim_build
 test/__pycache__/
 test/results.xml
 test/gate_level_netlist.v
+formal/es/
+formal/p4_csr_lock/
 .venv/
 __pycache__/
 .pytest_cache/
+tt/

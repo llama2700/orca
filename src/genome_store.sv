@@ -21,23 +21,33 @@ module genome_store (
   logic [7:0] log_addr;
   logic       log_valid;
 
+  logic        flip_en;
+  logic [7:0]  flip_addr;
+  logic [131:0] flip_mask;
+  assign flip_en   = mut_valid | (log_replay & log_valid);
+  assign flip_addr = mut_valid ? mut_addr : log_addr;
+  always_comb begin
+    flip_mask = '0;
+    if (flip_en) flip_mask[flip_addr] = 1'b1;
+  end
+
+  logic csr_wr;
+  assign csr_wr = csr_we && csr_allowed && (csr_waddr < 4'd11) &&
+                  !mut_valid && !log_replay && !log_clear;
+
   always_ff @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       genome    <= '0;
       log_addr  <= '0;
       log_valid <= 1'b0;
     end else begin
+      genome <= genome ^ flip_mask;
+      if (csr_wr) genome[12 * csr_waddr +: 12] <= csr_wdata;
       if (mut_valid) begin
-        genome[mut_addr] <= ~genome[mut_addr];
         log_addr  <= mut_addr;
         log_valid <= 1'b1;
-      end else if (log_replay) begin
-        if (log_valid) genome[log_addr] <= ~genome[log_addr];
+      end else if (log_replay || log_clear) begin
         log_valid <= 1'b0;
-      end else if (log_clear) begin
-        log_valid <= 1'b0;
-      end else if (csr_we && csr_allowed && (csr_waddr < 4'd11)) begin
-        genome[12 * csr_waddr +: 12] <= csr_wdata;
       end
     end
   end

@@ -45,5 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: YosysHQ/setup-oss-cad-suite@v3
-      - name: flop budget gate (behavioral reference)
-        run: python3 scripts/flop_count.py --rtl-dir behav --budget 480
+      - name: flop budget gate
+        run: python3 scripts/flop_count.py --rtl-dir src --budget 480 --netlist synth.v
+      - name: delay line survives yosys
+        run: python3 scripts/delayline_check.py synth.v

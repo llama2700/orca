@@ -5,19 +5,19 @@ mode prove
 depth 25
 
 [engines]
-smtbmc
+smtbmc z3
 
 [script]
-read -formal -sv ../behav/orca_pkg.sv
-read -formal -sv ../behav/prng.sv
-read -formal -sv ../behav/genome_store.sv
-read -formal -sv ../behav/es_controller.sv
+read -formal -sv orca_pkg.sv
+read -formal -sv prng.sv
+read -formal -sv genome_store.sv
+read -formal -sv es_controller.sv
 read -formal -sv formal_top.sv
 prep -top formal_top
 
 [files]
 formal_top.sv
-../behav/orca_pkg.sv
-../behav/prng.sv
-../behav/genome_store.sv
-../behav/es_controller.sv
+../src/orca_pkg.sv
+../src/prng.sv
+../src/genome_store.sv
+../src/es_controller.sv

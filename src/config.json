@@ -19,6 +19,14 @@
   "//": "The value is in nanoseconds, so 20ns == 50MHz.",
   "CLOCK_PERIOD": 20,
 
+  "//": "Settle sensor delay line + muxed launch clock: nothing may buffer, resize or drop these",
+  "RSZ_DONT_TOUCH_RX": "u_sensor\\.(chain|late_launch|g_dly).*",
+  "PNR_SDC_FILE": "dir::orca.sdc",
+  "SIGNOFF_SDC_FILE": "dir::orca.sdc",
+
+  "//": "No macro vs register clock latency balancing, the delay chain root on clk looks like a macro sink to cts",
+  "CTS_DELAY_BUFFER_DERATE_PCT": 0,
+
   "//": "Hold slack margin - Increase them in case you are getting hold violations.",
   "PL_RESIZER_HOLD_SLACK_MARGIN": 0.1,
   "GRT_RESIZER_HOLD_SLACK_MARGIN": 0.05,
@@ -55,8 +63,9 @@
 
   "GRT_ALLOW_CONGESTION": 1,
 
-  "//": "Fail fast on unroutable spots instead of grinding to the 6h CI limit",
-  "DRT_OPT_ITERS": 30,
+  "//": "Routing at 70% util converges slowly, give drt room but skip the librelane 3 post-route antenna re-routes (each is a full drt pass again)",
+  "DRT_OPT_ITERS": 40,
+  "DRT_ANTENNA_REPAIR_ITERS": 0,
 
   "FP_IO_HLENGTH": 2,
   "FP_IO_VLENGTH": 2,

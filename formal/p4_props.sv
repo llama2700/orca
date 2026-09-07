@@ -1,7 +1,7 @@
 `default_nettype none
 
 // P4: CSR genome writes are dropped when !csr_allowed and no mutation port
-// activity — genome must be stable.
+// activity, genome must be stable.
 module p4_top (
   input logic clk, rst_n,
   input logic csr_we,
@@ -22,6 +22,13 @@ module p4_top (
     .genome(genome));
 
 `ifdef FORMAL
+  reg f_past_valid = 1'b0;
+  always_ff @(posedge clk) f_past_valid <= 1'b1;
+  always_comb begin
+    if (!f_past_valid) assume (!rst_n);
+    else               assume (rst_n);
+  end
+
   logic [131:0] genome_prev;
   logic past_valid;
   always_ff @(posedge clk or negedge rst_n) begin
