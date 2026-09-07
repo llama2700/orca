@@ -69,7 +69,7 @@ async def test_correctness_only(dut):
 
 @cocotb.test()
 async def test_speed_sweep_forced_tmin(dut):
-    """correct == 32 by construction; force behav_tmin=K => speed = 63-K."""
+    """correct == 32 by construction; force forced_tmin=K => speed = 63-K."""
     await start(dut)
     random.seed(0xE7A2)
     model = CGPFabric()
@@ -79,7 +79,7 @@ async def test_speed_sweep_forced_tmin(dut):
         target = own_truth_table(model, genome)
         dut.genome.value = genome
         dut.target_flat.value = flat(target)
-        dut.u_sensor.behav_tmin.value = k
+        dut.u_sensor.forced_tmin.value = k
         got = await run_eval(dut)
         assert got == (32 << 6) | (63 - k), \
             f"tmin={k}: fitness {got:#x}, expected speed {63-k}"
@@ -96,7 +96,7 @@ async def test_speed_sweep_disable(dut):
     target = own_truth_table(model, genome)
     dut.genome.value = genome
     dut.target_flat.value = flat(target)
-    dut.u_sensor.behav_tmin.value = 5
+    dut.u_sensor.forced_tmin.value = 5
     dut.speed_sweep_disable.value = 1
     assert await run_eval(dut) == 32 << 6
     # and re-enabling brings speed back
@@ -118,14 +118,14 @@ async def test_lexicographic_dominance(dut):
     # perfect but slowest die
     dut.genome.value = genome
     dut.target_flat.value = flat(target)
-    dut.u_sensor.behav_tmin.value = 63
+    dut.u_sensor.forced_tmin.value = 63
     fit_correct_slow = await run_eval(dut)
 
     # break one output bit of the target => correct = 31, fastest die
     broken = list(target)
     broken[3] ^= 1
     dut.target_flat.value = flat(broken)
-    dut.u_sensor.behav_tmin.value = 0
+    dut.u_sensor.forced_tmin.value = 0
     fit_wrong_fast = await run_eval(dut)
 
     assert fit_correct_slow == (32 << 6) | 0
@@ -150,5 +150,44 @@ async def test_eval_with_faults(dut):
     got = await run_eval(dut)
     want = model.evaluate(genome, stuck_en, stuck_val, target, speed_val=0)
     if want >> 6 == 32:  # faults happened not to matter: speed sweep runs
-        want |= 63 - dut.u_sensor.behav_tmin.value.to_unsigned()
+        want |= 63 - dut.u_sensor.forced_tmin.value.to_unsigned()
     assert got == want
+
+
+@cocotb.test()
+async def test_physical_mismatch_path(dut):
+    """no forced_tmin here. break the phenotype with a stuck cell only once the
+    speed sweep has started, so correctness still reads 32 but the shadow
+    launched po disagrees with the target on some vectors. every tap then
+    fails through the real capture/sync path and the search lands on
+    t_min = 63, speed 0."""
+    await start(dut)
+    random.seed(0x5A7E)
+    model = CGPFabric()
+    S_SETTLE = 4
+
+    # a genome and a fault that actually changes its truth table
+    while True:
+        genome = random.getrandbits(132)
+        target = own_truth_table(model, genome)
+        stuck_en = 1 << random.randrange(16)
+        if own_truth_table(model, genome, stuck_en, 0) != target:
+            break
+
+    dut.genome.value = genome
+    dut.target_flat.value = flat(target)
+    dut.eval_start.value = 1
+    await ClockCycles(dut.clk, 1)
+    dut.eval_start.value = 0
+    while dut.u_eval.state.value.to_unsigned() != S_SETTLE:
+        await RisingEdge(dut.clk)
+    dut.stuck_en.value = stuck_en
+    dut.stuck_val.value = 0
+    await with_timeout(RisingEdge(dut.eval_done), EVAL_TIMEOUT_NS, "ns")
+    await ClockCycles(dut.clk, 1)
+    got = dut.fitness.value.to_unsigned()
+    assert got == 32 << 6, f"fitness {got:#x}, expected 32/0 from the physical path"
+
+    # fault gone, the same genome sweeps clean again
+    dut.stuck_en.value = 0
+    assert await run_eval(dut) == (32 << 6) | 63

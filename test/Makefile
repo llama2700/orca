@@ -2,15 +2,13 @@
 #
 # Default (full chip via tb.v):   make -B
 # Unit suites:                    make -B UNIT=fabric|fault|eval|es
-# Against the src tree:         make -B RTL=src [UNIT=...]
 # Gate level (TT CI):             make -B GATES=yes
 
 SIM ?= icarus
 FST ?= -fst
 TOPLEVEL_LANG ?= verilog
 
-RTL ?= behav
-RTL_DIR = $(PWD)/../$(RTL)
+RTL_DIR = $(PWD)/../src
 
 RTL_SOURCES = orca_pkg.sv fabric_cell.sv fabric.sv prng.sv genome_store.sv \
               ser_cmd.sv settle_sensor.sv eval_engine.sv es_controller.sv tt_um_orca.sv

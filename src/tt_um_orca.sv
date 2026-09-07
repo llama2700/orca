@@ -111,8 +111,9 @@ module tt_um_orca (
   logic        eval_start, eval_done;
   logic [11:0] fitness;
 
+  // pi_shadow is pi outside a speed sweep and the late-launched copy inside one
   fabric u_fabric (
-    .pi(pi), .genome(genome),
+    .pi(pi_shadow), .genome(genome),
     .stuck_en(stuck_en), .stuck_val(stuck_val),
     .po(po), .cell_out_dbg(cell_out_dbg)
   );
@@ -253,6 +254,6 @@ module tt_um_orca (
   assign uio_out = {po[0], 1'b0, probe, accept_pulse, ser_out, 3'b000};
 
   // unused
-  wire _unused = &{ena, ui_in[3], ui_in[7], uio_in, pi_shadow, cell_out_dbg, 1'b0};
+  wire _unused = &{ena, ui_in[3], ui_in[7], uio_in, cell_out_dbg, 1'b0};
 
 endmodule
