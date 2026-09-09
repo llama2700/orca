@@ -1,0 +1,20 @@
+VERSION 5.7 ;
+NAMESCASESENSITIVE ON ;
+BUSBITCHARS "[]" ;
+DIVIDERCHAR "/" ;
+UNITS
+  DATABASE MICRONS 1000 ;
+END UNITS
+
+# 2x2 um block parked in the cell-free margin at (1,1); the met4 art itself
+# lives beyond this bbox in the GDS (scripts/orca_art.py), so it costs the
+# placer nothing. ROUTING_OBSTRUCTIONS keeps the router off the art.
+MACRO orca_art
+  CLASS BLOCK ;
+  FOREIGN orca_art 0 0 ;
+  ORIGIN 0 0 ;
+  SIZE 2.0 BY 2.0 ;
+  SYMMETRY X Y ;
+END orca_art
+
+END LIBRARY

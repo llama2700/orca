@@ -11,7 +11,8 @@ TOPLEVEL_LANG ?= verilog
 RTL_DIR = $(PWD)/../src
 
 RTL_SOURCES = orca_pkg.sv fabric_cell.sv fabric.sv prng.sv genome_store.sv \
-              ser_cmd.sv settle_sensor.sv eval_engine.sv es_controller.sv tt_um_orca.sv
+              ser_cmd.sv settle_sensor.sv eval_engine.sv es_controller.sv tt_um_orca.sv \
+              orca_art_stub.sv
 
 UNIT ?=
 
@@ -22,6 +23,7 @@ SIM_BUILD        = sim_build/gl
 COMPILE_ARGS    += -DGL_TEST -DFUNCTIONAL -DUSE_POWER_PINS -DSIM -DUNIT_DELAY=\#1
 VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/primitives.v
 VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v
+VERILOG_SOURCES += $(PWD)/../src/orca_art_stub.sv
 VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 VERILOG_SOURCES += $(PWD)/tb.v
 TOPLEVEL = tb

@@ -23,6 +23,7 @@ project:
     - "es_controller.sv"
     - "ser_cmd.sv"
     - "prng.sv"
+    - "orca_art_stub.sv"
 
 pinout:
   # Inputs

@@ -256,4 +256,7 @@ module tt_um_orca (
   // unused
   wire _unused = &{ena, ui_in[3], ui_in[7], uio_in, cell_out_dbg, 1'b0};
 
+  // gds art: pixel orca on met4 (placed macro, no pins)
+  (* keep = 1 *) orca_art u_art ();
+
 endmodule

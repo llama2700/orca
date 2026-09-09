@@ -1,0 +1,3 @@
+* empty model for the met4 art macro (floating metal, no devices)
+.subckt orca_art
+.ends

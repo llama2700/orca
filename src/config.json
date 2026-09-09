@@ -24,8 +24,17 @@
   "PNR_SDC_FILE": "dir::orca.sdc",
   "SIGNOFF_SDC_FILE": "dir::orca.sdc",
 
-  "//": "Pixel orca met4 art, merged at gds write (floating metal, verified clear of all routes)",
-  "EXTRA_GDS_FILES": "dir::orca_art.gds",
+  "//": "Pixel orca met4 art: placed macro, tiny lef bbox in the margin, art overflow covered by the met4 routing obstruction",
+  "MACROS": {
+    "orca_art": {
+      "module": "orca_art",
+      "gds": ["dir::orca_art.gds"],
+      "lef": ["dir::orca_art.lef"],
+      "instances": { "u_art": { "location": [1.0, 1.0], "orientation": "N" } }
+    }
+  },
+  "ROUTING_OBSTRUCTIONS": ["met4 296.0 168.0 328.0 216.0"],
+  "EXTRA_SPICE_MODELS": ["dir::orca_art.spice"],
 
   "//": "No macro vs register clock latency balancing, the delay chain root on clk looks like a macro sink to cts",
   "CTS_DELAY_BUFFER_DERATE_PCT": 0,
