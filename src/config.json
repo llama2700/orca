@@ -27,7 +27,6 @@
   "//": "Pixel orca met4 art: placed macro, tiny lef bbox in the margin, art overflow covered by the met4 routing obstruction",
   "MACROS": {
     "orca_art": {
-      "module": "orca_art",
       "gds": ["dir::orca_art.gds"],
       "lef": ["dir::orca_art.lef"],
       "instances": { "u_art": { "location": [1.0, 1.0], "orientation": "N" } }
