@@ -35,6 +35,11 @@ compare across dies). The delay line spans about one 25 MHz period on a
 typical die, so run CHARACTERIZE at 25 to 33 MHz. Slower and the window never
 gets short enough to fail, faster and the deep taps wrap past the next edge.
 
+The die itself is worth a look under a microscope: a 328 x 160 um orca is
+drawn in met4 across the whole tile, which is nearly the entire 2x2 area. The
+power straps cross it every 39 um, and since they are met4 as well the seams
+read as hairlines.
+
 ## How to test
 
 Smoke test with no host: strap `ui_in[0]` (run) high, clock at 25 MHz, and
