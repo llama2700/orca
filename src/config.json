@@ -34,6 +34,7 @@
   },
   "ROUTING_OBSTRUCTIONS": ["met4 296.0 168.0 328.0 216.0"],
   "EXTRA_SPICE_MODELS": ["dir::orca_art.spice"],
+  "IGNORE_DISCONNECTED_MODULES": ["sky130_fd_sc_hd__conb_1", "orca_art"],
 
   "//": "No macro vs register clock latency balancing, the delay chain root on clk looks like a macro sink to cts",
   "CTS_DELAY_BUFFER_DERATE_PCT": 0,

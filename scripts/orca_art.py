@@ -65,6 +65,10 @@ def main():
     for p in merged:
         cell.add(p)
 
+    # PR boundary (sky130 areaid 235/4) matching the 2x2 LEF bbox at the
+    # origin — magic's macro bbox extraction requires it
+    cell.add(gdstk.rectangle((0, 0), (2.0, 2.0), layer=235, datatype=4))
+
     lib = gdstk.Library("orca_art")
     lib.add(cell)
     out = "src/orca_art.gds"
